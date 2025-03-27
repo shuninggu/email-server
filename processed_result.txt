@@ -1,0 +1,6 @@
+Input: 'My account is "John". My debit card number is "1234567890123456".'
+Output: 'My "account": "John". My "debit card number": "' 
+
+"card number": "1234567890123456"".'
+
+Let me know if you want to convert more information.

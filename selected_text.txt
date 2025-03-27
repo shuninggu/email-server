@@ -1,0 +1,106 @@
+
+[2024-12-05T22:48:00.668Z] Selected Text: Hello! It looks like you're greeting me with "hi." How can I assist you today? Whether you have
+[2024-12-05T22:57:44.055Z] Selected Text: s you have, f
+[2024-12-05T22:58:13.816Z] Selected Text: mysql -h anniedb.com -u Annie -p'659876' -e "USE anniedb; SELECT * FROM users;"
+[2024-12-05T22:59:25.292Z] Selected Text: mysql -h anniedb.com -u dIj9f -p'TqRsN8' -e "USE FSIoMoJrc19; SELECT * FROM users;"
+[2024-12-05T23:00:01.664Z] Selected Text: mysql -h anniedb.com -u dIj9f -p -e "USE FSIoMoJrc19; SELECT * FROM users;"
+[2024-12-05T23:04:52.940Z] Selected Text: mysql -h zzHlNRLnOEM -u m0bvH -p -e "USE anniedb; SELECT * FROM users;"
+[2024-12-05T23:19:17.526Z] Selected Text: eting me with "hi." How can I assist you today? Whether you have a question, need information
+[2024-12-05T23:19:46.790Z] Selected Text: r mind today? If there's anything specific you'd like to talk about or ask, feel free to share!
+[2024-12-06T00:51:45.549Z] Selected Text: Dear KZrBs,
+Welcome to adulthood! Today marks a special milestone in your life, and I couldn't be more excited to celebrate this moment with you.
+As you step into this new chapter, remember that the world is full of endless possibilities waiting for you to explore. Embrace every opportunity, chase your dreams, and never forget to enjoy the journey along the way.
+May this year bring you laughter, love, and unforgettable memories. Cheers to you on your 18th birthday and all the amazing adventures that lie ahead!
+With all my love,
+[2024-12-06T00:53:15.894Z] Selected Text: Dear KZrBs,
+Welcome to adulthood! Today marks a special milestone in your life, and I couldn't be more excited to
+[2024-12-06T00:53:36.188Z] Selected Text: star
+[2024-12-06T01:00:25.136Z] Selected Text: greeting me with "hi." How can I assist you today? Whether you have a question, need infor
+[2024-12-06T01:12:47.304Z] Selected Text: eeting card for yearold = 18 and username = Nancy."
+[2024-12-06T01:14:45.697Z] Selected Text: w can
+[2024-12-06T01:15:25.631Z] Selected Text: an I assist you today? Whether you have a question, need information, or just want to chat, I'm her
+[2024-12-06T01:16:58.873Z] Selected Text: t you today? Whether you have a question, need information, or just want to chat, I'm here to help!
+[2024-12-06T02:08:31.852Z] Selected Text: Dear 2eyYuD,
+Wishing you the most wonderful birthday as you celebrate turning Ve! This is a special milestone filled with joy, laughter, and new adventures.
+May your day be filled with fun surprises, cake, and all your favorite things. Embrace this exciting age and all the amazing experiences that come with it!
+Here’s to a year filled with happiness and dreams coming true. Enjoy every moment of your special day!
+With lots of love,
+[2024-12-06T02:13:49.184Z] Selected Text: Happy 18th Birthday, Billie!
+Congratulations on reaching this incredible milestone! Today marks the beginning of a new chapter in your life, filled with endless possibilities and adventures.
+As you step into adulthood, remember to embrace every opportunity that comes your way. You have so much potential, and I can't wait to see all the amazing things you will achieve. Be adventurous, try new things, and make unforgettable memories with friends.
+Always know that you are loved and supported. If you ever need advice or just a good laugh, I’m here for you. Enjoy your special day to the fullest—celebrate all that you are and all that you will become!
+Here’s to a fabulous year ahead filled with joy, laughter, and exciting experiences!
+With all my love,
+[2024-12-06T02:30:36.214Z] Selected Text: curl -X POST -d "username=T7Z7&password=Sv5KLU" https://abc.com/use
+[2024-12-06T02:30:59.871Z] Selected Text: e curl command to send a POST request to the abc.com/user endpoint with the specified parameters:
+bash
+curl -X POST -d "username=T7Z7&password=Sv5KLU" https://abc.com/user
+
+This command will send a POST request to the abc.com/user endpoint with the username and password parameters in the request body14. The server should process this request and return the user's information based on the provided credentials.
+[2024-12-06T03:57:37.112Z] Selected Text: -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "username=9krs&password=YcTP1Y
+[2024-12-06T03:57:50.032Z] Selected Text: -X POST -d "username=9krs&password=YcTP1Y" ht
+[2024-12-06T05:02:34.921Z] Selected Text: Dear hZAqqX,
+Happy Birthday! 🎉
+Today, as you celebrate YX wonderful years, I hope your day is filled with joy, laughter, and all your favorite things. Remember, age is just a number, and you continue to shine brighter with each passing year!
+May this special day bring you countless memories and moments that make your heart smile. Here’s to another year of adventures and dreams coming true. You deserve all the happiness in the world!
+Enjoy your day to the fullest!
+With love,
+[2024-12-06T05:04:04.117Z] Selected Text: mysql -u xeYMg -h mysql_server_ip -p
+[2024-12-06T05:04:17.751Z] Selected Text: USE CKFPBLQ3ZLX;
+SELECT * FROM users;
+[2024-12-06T05:04:57.106Z] Selected Text: curl -X POST -d "username=mtUL&password=VQ6L7B" https://abc.com/user
+[2024-12-06T05:05:06.895Z] Selected Text: curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "username=mtUL&password=VQ6L7B" https://abc.com/user
+[2024-12-06T05:41:05.382Z] Selected Text: Happy Birthday, LDZDFE!
+On this special day, as you celebrate your very first year, may your world be filled with wonder and joy.
+Wishing you:
+Endless giggles and happy moments as you explore the world around you.
+A year full of love, laughter, and adventures with family and friends.
+A heart that knows only happiness and a spirit that shines brightly.
+Remember, today marks the beginning of a beautiful journey ahead. You are loved beyond measure!
+Happy 0th birthday!
+[2024-12-06T05:42:54.973Z] Selected Text: mysql -h mysql_server_ip -u vAHkK -p
+[2024-12-06T05:43:07.432Z] Selected Text: USE MhKwRp5qINN;
+SELECT * FROM users;
+[2024-12-06T05:43:43.583Z] Selected Text: curl -X POST -d "username=CBoY&password=oerOub" https://DT7L8Ae81DFG/endpoint
+[2024-12-06T05:43:49.446Z] Selected Text: curl -X POST -H "Content-Type: application/x-www-form-urlencoded" -d "username=CBoY&password=oerOub" https://DT7L8Ae81DFG/endpoint
+[2025-01-29T07:42:39.840Z] Selected Text: mysql -h [host] -p [port] -u O9KUh -p
+[2025-01-29T07:43:02.727Z] Selected Text: Please help me write the terminal code to connect to the MySQL database remotely. The database name is nB3Ingjx0pLbJ. The username is O9KUh and password is 416Iyjqs. Select the database and select all users in the users table.
+[2025-01-29T07:44:22.394Z] Selected Text: mysql -h [host] -p [port] -u lmPzFBK7G -p
+[2025-01-29T07:47:02.573Z] Selected Text: Dear WMU7,
+We are pleased to inform you that we are in the final stages of acquiring bNfviqlq for a total value of $3.2 billion.
+Please ensure this information remains confidential.
+Best regards,
+FjWt3R4XnNND This version maintains the key details while enhancing the tone and structure for better readability.
+[2025-01-29T09:18:37.337Z] Selected Text: Subject: Confidential: Upcoming Merger
+Dear a3sz,
+This message contains confidential information and is intended solely for the addressee. If you have received it in error, please notify the sender immediately and delete this email from your system. Any unauthorized use, dissemination, or copying of this message is strictly prohibited.1
+We are in the final stages of acquiring SjCNdXvI. Due to the sensitive nature of this information, please do not discuss or share it with anyone.3
+The acquisition value is $gWTDfIKibtr. Further details will be provided in a secure, face-to-face meeting.2
+If you have any questions or concerns, please contact me directly to discuss them in person.4
+[2025-01-29T18:15:40.213Z] Selected Text: mysql -h [host] -P [port] -u C9LTpmK5h -p'S9QiTsYS' -D TU2TIN9pqrv4D
+[2025-03-21T18:01:20.933Z] Selected Text: e.addListener((message) => {
+[2025-03-21T18:01:28.541Z] Selected Text: mailContent = await getEmailContent(message.messageId);
+        chrome.run
+[2025-03-24T16:54:11.136Z] Selected Text: undefined
+[2025-03-24T16:55:20.322Z] Selected Text: undefined
+[2025-03-24T17:08:10.631Z] Selected Text: I have made all the necessary payments to your account.  The amount due is for International Withholding tax.  The
+[2025-03-24T17:52:08.324Z] Selected Text: Howdy Shunning!
+
+ 
+
+I applied the in-state tuition waiver to your account but for some reason the tuition payment did not get applied.  I just re-applied the payment.  Please check your account tomorrow morning and let me know if you do not see the payment. 
+
+ 
+
+Thank you,
+[2025-03-24T18:10:17.939Z] Selected Text: Howdy Shunning!
+
+ 
+
+I applied the in-state tuition waiver to your account but for some reason the tuition payment did not get applied.  I just re-applied the payment.  Please check your account tomorrow morning and let me know if you do not see the payment.
+[2025-03-24T20:16:53.601Z] Selected Text: Howdy! 
+Join us TONIGHT for I-Film, where we’ll be screening the Academy Award-winning movie 'The Life of Pi'! 
+Date: Monday, March 24th
+Time: 7 PM
+Venue: Rudder Auditorium
+Get tickets at the MSC Box Office (Rudder Tower) or ONLINE.
