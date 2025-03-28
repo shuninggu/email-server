@@ -1,8 +1,9 @@
-import openai
+# import openai
+from openai import OpenAI
 import matplotlib.pyplot as plt
 from openpyxl import load_workbook
 import os
-import csv  # 放在文件开头
+import csv  # 放在文件开头xx
 
 
 ########################
@@ -16,18 +17,23 @@ def judge_replies(reply_a: str, reply_b: str) -> str:
     - "model2"  (表示 B 更好)
     - "tie"     (表示 差不多)
     """
+    
+    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
 
     # 这里替换成你自己的 API Key 或者调用私有 LLM 的接口
     # openai.api_key = "YOUR_OPENAI_API_KEY"
-    openai.api_key = os.environ.get("OPENAI_API_KEY")
-    if openai.api_key is None:
-        raise ValueError("❌ Environment variable 'OPENAI_API_KEY' not found. Please export it in your terminal.")
+    # openai.api_key = os.environ.get("OPENAI_API_KEY")
+    # if openai.api_key is None:
+    #     raise ValueError("❌ Environment variable 'OPENAI_API_KEY' not found. Please export it in your terminal.")
 
 
     # 给评估模型的提示词，可根据需求改动
     system_prompt = """You are an unbiased judge. 
-You will be provided with two email replies (Reply A and Reply B). 
-You must compare them in terms of clarity, correctness, completeness, politeness, and overall helpfulness. 
+You will be provided with two email replies (Reply A and Reply B).
+You must compare them based on the following two criteria:
+1. Naturalness: The reply should sound like something a real human would naturally write in a professional or casual email context — not overly templated or robotic.
+2. Succinctness: The reply should be clear and concise, avoiding unnecessary length or repetition while still addressing the core of the message.
+
 Output one single token among these:
 - "model1": if Reply A is clearly better,
 - "model2": if Reply B is clearly better,
@@ -44,22 +50,22 @@ Reply B:
 Which reply is better?
 """
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",  # 或 "gpt-3.5-turbo" / 你自己部署的模型
+        # response = openai.ChatCompletion.create(
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",  # 或 "gpt-4" / 你自己部署的模型
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user",   "content": user_prompt},
             ],
             temperature=0.0
         )
-        content = response["choices"][0]["message"]["content"].strip().lower()
-        if content in ["model1", "model2", "tie"]:
-            return content
+        result = response.choices[0].message.content.strip().lower()
+        if result in ["model1", "model2", "tie"]:
+            return result
         else:
             return "tie"
     except Exception as e:
         print("Error calling LLM:", e)
-        # 如果出错就默认设为 tie，或根据需要改成其它逻辑
         return "tie"
 
 ########################
