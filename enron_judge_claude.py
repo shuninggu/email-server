@@ -3,39 +3,49 @@ import csv
 import time
 import matplotlib.pyplot as plt
 from openpyxl import load_workbook
-
-# 如果你使用 openai 包，则在这里:
-# import openai
-# openai.api_key = os.environ.get("OPENAI_API_KEY")
-
-# 如果你使用的是私有的 LLM 客户端（例如 class OpenAI(api_key=...) ），则保持如下引入:
-from openai import OpenAI
-
+import anthropic  # Claude API
 
 ########################
-# 第 1 部分：LLM 评估函数
+# Claude-based evaluation function
 ########################
 
 def judge_replies(reply_a: str, reply_b: str) -> str:
     """
-    对比 reply_a, reply_b，调用评估用的 LLM 返回:
-    - "model1"  (表示 A 更好)
-    - "model2"  (表示 B 更好)
-    - "tie"     (表示 差不多)
+    Compare two replies using Claude API.
+    Return one of:
+    - "model1": if Reply A is better
+    - "model2": if Reply B is better
+    - "tie": if both are about the same
     """
-    client = OpenAI(api_key=os.environ["OPENAI_API_KEY"])
+    client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
-    system_prompt = """You are an unbiased judge. 
-You will be provided with two email replies (Reply A and Reply B).
-You must compare them based on the following two criteria:
-1. Naturalness
-2. Succinctness
+#     system_prompt = """You are an unbiased judge.
+# You will be provided with two email replies (Reply A and Reply B).
+# Evaluate them based on:
+# 1. Naturalness: The reply should sound like something a human would naturally write.
+# 2. Succinctness: It should be concise and to the point, avoiding unnecessary repetition.
 
-Output one single token among these:
-- "model1"
-- "model2"
-- "tie"
-Do not explain your reasoning. Just return one word exactly: model1, model2, or tie.
+# Only reply with one of the following words:
+# - model1
+# - model2
+# - tie
+# Do not explain. Do not include anything else.
+# """
+
+    system_prompt = """
+    You are an unbiased judge.
+
+You will be shown two email replies: Reply A and Reply B. Your task is to decide which one is better based on the following criteria:
+
+1. Naturalness: Does the reply sound like it was written by a human? Is it appropriate in tone and style?
+2. Succinctness: Is the reply clear, concise, and free of unnecessary repetition?
+
+You must choose the better reply unless they are truly indistinguishable in both criteria. Use your best judgment — do not default to “tie” unless there is no meaningful difference.
+
+Respond with exactly one word, and nothing else:
+- model1  (if Reply A is better)
+- model2  (if Reply B is better)
+- tie     (only if they are *truly* equal in both criteria)
 """
 
     user_prompt = f"""
@@ -47,27 +57,28 @@ Reply B:
 
 Which reply is better?
 """
+
     try:
-        response = client.chat.completions.create(
-            model="gpt-3.5-turbo",  # 或 "gpt-4" / 你自己部署的模型
+        response = client.messages.create(
+            model="claude-3-sonnet-20240229",  # Change to sonnet/opus if desired
+            max_tokens=1,
+            temperature=0,
+            system=system_prompt,
             messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user",   "content": user_prompt},
-            ],
-            temperature=0.0
+                {"role": "user", "content": user_prompt}
+            ]
         )
-        result = response.choices[0].message.content.strip().lower()
+        result = response.content[0].text.strip().lower()
         if result in ["model1", "model2", "tie"]:
             return result
         else:
             return "tie"
     except Exception as e:
-        print("Error calling LLM:", e)
+        print("❌ Claude API error:", e)
         return "tie"
 
-
 ########################
-# 第 2 部分：Excel 数据读取 & 四组对比
+# Compare two columns from Excel
 ########################
 
 def compare_two_columns(
@@ -80,16 +91,9 @@ def compare_two_columns(
     label: str = None
 ) -> dict:
     """
-    从 Excel 中读取两列数据 (列号从1开始)，
-    调用 judge_func() 进行对比，统计 modelA胜 / modelB胜 / tie 的次数。
-    可选：将每一条对比写入 log 文件 (CSV)，记录:
-        - Index
-        - Model A (对应表格的 col_a)
-        - Model B (对应表格的 col_b)
-        - Compare Result (modelA胜 / modelB胜 / tie)
-        - Time (sec)
+    Compare two Excel columns (1-indexed). Log each comparison result.
+    Return win/tie counts.
     """
-    from openpyxl import load_workbook
     wb = load_workbook(workbook_path)
     sheet = wb.active
     rows = list(sheet.iter_rows(values_only=True))
@@ -100,7 +104,6 @@ def compare_two_columns(
     score_modelB = 0
     score_tie = 0
     total_count = 0
-
     logs = []
 
     for idx, row in enumerate(rows):
@@ -110,24 +113,20 @@ def compare_two_columns(
             continue
 
         total_count += 1
-
-        # 记录对比开始时间
         start_time = time.time()
         result_raw = judge_func(reply_a, reply_b)
-        elapsed = time.time() - start_time  # 对比花费的秒数
+        elapsed = time.time() - start_time
 
-        # 将原始结果 "model1"/"model2"/"tie" 映射到日志表述
         if result_raw == "model1":
-            result_str = "modelA胜"
+            result_str = "modelA wins"
             score_modelA += 1
         elif result_raw == "model2":
-            result_str = "modelB胜"
+            result_str = "modelB wins"
             score_modelB += 1
         else:
             result_str = "tie"
             score_tie += 1
 
-        # 添加到日志中
         logs.append({
             "Index": idx + 2 if skip_header else idx + 1,
             "Model A": reply_a,
@@ -136,17 +135,15 @@ def compare_two_columns(
             "Time (sec)": f"{elapsed:.2f}"
         })
 
-    # 如果指定了 log_path 和标签，就写入 CSV
     if log_path and label:
-        if not os.path.exists(log_path):
-            os.makedirs(log_path)
+        os.makedirs(log_path, exist_ok=True)
         filename = f"{log_path}/comparison_log_{label.replace(' ', '_')}.csv"
         with open(filename, mode="w", encoding="utf-8-sig", newline="") as f:
             fieldnames = ["Index", "Model A", "Model B", "Compare Result", "Time (sec)"]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(logs)
-        print(f"🔍 Log saved to {filename}")
+        print(f"✅ Log saved to: {filename}")
 
     return {
         "modelA": score_modelA,
@@ -155,24 +152,16 @@ def compare_two_columns(
         "total": total_count,
     }
 
-
 ########################
-# 第 3 部分：可视化 - 画堆叠条形图
+# Horizontal stacked bar chart
 ########################
 
 def create_stacked_bar_chart(results_list: list, title: str = "Human Evaluation"):
     """
-    给定若干组对比结果，画出堆叠条形图(横向柱状图)：
-      - modelA胜 (底层)
-      - tie (中间)
-      - modelB胜 (上层)
-    百分比堆叠。
+    Plot win/tie percentages for each model pair comparison.
     """
     labels = [r["label"] for r in results_list]
-
-    modelA_pct = []
-    tie_pct = []
-    modelB_pct = []
+    modelA_pct, tie_pct, modelB_pct = [], [], []
 
     for r in results_list:
         total = r["total"]
@@ -188,11 +177,8 @@ def create_stacked_bar_chart(results_list: list, title: str = "Human Evaluation"
     x_positions = range(len(labels))
     fig, ax = plt.subplots(figsize=(8, 4))
 
-    # 底层：modelA胜
     barA = ax.barh(x_positions, modelA_pct, label='Win (ModelA)')
-    # 中层：tie
     barT = ax.barh(x_positions, tie_pct, left=modelA_pct, label='Tie')
-    # 上层：modelB胜
     left_for_B = [a + t for a, t in zip(modelA_pct, tie_pct)]
     barB = ax.barh(x_positions, modelB_pct, left=left_for_B, label='Win (ModelB)')
 
@@ -204,7 +190,6 @@ def create_stacked_bar_chart(results_list: list, title: str = "Human Evaluation"
                 y_pos = rect.get_y() + rect.get_height() / 2
                 ax.text(x_pos, y_pos, f"{width:.1f}%", ha='center', va='center', color='white', fontsize=9)
 
-    # 在每段条形上标出百分比
     add_labels(barA, [0]*len(modelA_pct))
     add_labels(barT, modelA_pct)
     add_labels(barB, left_for_B)
@@ -214,30 +199,28 @@ def create_stacked_bar_chart(results_list: list, title: str = "Human Evaluation"
     ax.set_xlabel("% win rate")
     ax.set_xlim([0, 100])
     ax.set_title(title)
-    ax.invert_yaxis()  # 让第一组排在最上面
+    ax.invert_yaxis()
     ax.legend(loc="lower right")
     plt.tight_layout()
     plt.show()
 
-
 ########################
-# 第 4 部分：主函数
+# Main entry point
 ########################
 
 def main():
     workbook_path = "enron_output.xlsx"
-    
-    # 你想要对比的四组
-    # 三元组: (可视化/日志的label, colA, colB)
+
+    # Define (label, column A, column B)
     pairs_to_compare = [
         ("gemma3:1b vs GPT-4", 2, 7),
         ("gemma:2b vs GPT-4", 3, 7),
         ("llama3.2:3b vs GPT-4", 4, 7),
         ("mistral vs GPT-4", 5, 7),
     ]
-    
+
     results_for_chart = []
-    
+
     for pair_label, colA, colB in pairs_to_compare:
         comparison = compare_two_columns(
             workbook_path=workbook_path,
@@ -245,11 +228,10 @@ def main():
             col_b=colB,
             skip_header=True,
             judge_func=judge_replies,
-            log_path="logs",        # 日志文件夹
-            label=pair_label        # 用于命名日志文件
+            log_path="logs_claude_2",
+            label=pair_label
         )
-        
-        # 记录给后面画图用
+
         results_for_chart.append({
             "label": pair_label,
             "modelA": comparison["modelA"],
@@ -258,9 +240,7 @@ def main():
             "total": comparison["total"],
         })
 
-    # 最后画一个堆叠条形图
-    create_stacked_bar_chart(results_for_chart, title="Pairwise Comparison Results")
-
+    create_stacked_bar_chart(results_for_chart, title="Claude-Based Email Reply Evaluation")
 
 if __name__ == "__main__":
     main()
