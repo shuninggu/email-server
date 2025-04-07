@@ -1,18 +1,13 @@
 import pandas as pd
 import time
-import openai
+from openai import OpenAI
+import os
 from openai import OpenAI
 
-# ------------------------------------------------------------------------------
-# 1) Set up your OpenAI client
-# ------------------------------------------------------------------------------
-client = OpenAI(api_key="")  # replace with your key
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# ------------------------------------------------------------------------------
-# 2) Configuration
-# ------------------------------------------------------------------------------
-input_file = "enron.xlsx"
-output_file = "enron_gpt_output.xlsx"
+input_file = "enron.xlsx"          # Input Excel file
+output_file = "enron/enron_output.xlsx"  # Output Excel file
 
 PROMPT_TEMPLATE = """You are a helpful email assistant. I have just received the following email.
 Please generate a reply for me. Only return the email body without reasoning.
@@ -20,19 +15,20 @@ Email:
 {}
 ===================="""
 
-model_gpt3_5 = "gpt-3.5-turbo"
-model_gpt4 = "gpt-4"
+# model_gpt3_5 = "gpt-3.5-turbo"
+model_gpt4 = "gpt-4o"
 
-col_reply_gpt3_5 = "Reply_gpt3.5"
-col_reply_gpt4 = "Reply_gpt4"
+# col_reply_gpt3_5 = "Reply_gpt3.5"
+col_reply_gpt4 = "Reply_gpt4o"
 
 # ------------------------------------------------------------------------------
 # 3) Read the Excel file
 # ------------------------------------------------------------------------------
 df = pd.read_excel(input_file, dtype=str)
+# df = pd.read_csv(input_file, dtype=str)
 
-if col_reply_gpt3_5 not in df.columns:
-    df[col_reply_gpt3_5] = ""
+# if col_reply_gpt3_5 not in df.columns:
+#     df[col_reply_gpt3_5] = ""
 
 if col_reply_gpt4 not in df.columns:
     df[col_reply_gpt4] = ""
@@ -75,8 +71,8 @@ for idx in range(1, num_rows):
     row_start_time = time.time()
 
     # GPT-3.5
-    gpt3_5_reply = call_openai_chat(model_gpt3_5, prompt_text)
-    df.at[idx, col_reply_gpt3_5] = gpt3_5_reply
+    # gpt3_5_reply = call_openai_chat(model_gpt3_5, prompt_text)
+    # df.at[idx, col_reply_gpt3_5] = gpt3_5_reply
 
     # GPT-4
     gpt4_reply = call_openai_chat(model_gpt4, prompt_text)

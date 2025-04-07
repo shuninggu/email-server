@@ -9,9 +9,9 @@ import anthropic  # Claude API
 # Claude-based evaluation function
 ########################
 
-def judge_replies(reply_a: str, reply_b: str) -> str:
+def judge_replies(original_email: str, reply_a: str, reply_b: str) -> str:
     """
-    Compare two replies using Claude API.
+    Compare two replies using Claude API, also providing the original email for context.
     Return one of:
     - "model1": if Reply A is better
     - "model2": if Reply B is better
@@ -19,59 +19,60 @@ def judge_replies(reply_a: str, reply_b: str) -> str:
     """
     client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
 
-#     system_prompt = """You are an unbiased judge.
-# You will be provided with two email replies (Reply A and Reply B).
-# Evaluate them based on:
-# 1. Naturalness: The reply should sound like something a human would naturally write.
-# 2. Succinctness: It should be concise and to the point, avoiding unnecessary repetition.
-
-# Only reply with one of the following words:
-# - model1
-# - model2
-# - tie
-# Do not explain. Do not include anything else.
-# """
-
+    # 系统提示词
     system_prompt = """
     You are an unbiased judge.
 
-You will be shown two email replies: Reply A and Reply B. Your task is to decide which one is better based on the following criteria:
+    You will be shown an original email, and two different replies (Reply A and Reply B).
+    Your task is to decide which reply is better based on the following criteria:
 
-1. Naturalness: Does the reply sound like it was written by a human? Is it appropriate in tone and style?
-2. Succinctness: Is the reply clear, concise, and free of unnecessary repetition?
+    1. Naturalness: Does the reply sound like it was written by a human? Is it appropriate in tone and style?
+    2. Succinctness: Is the reply clear, concise, and free of unnecessary repetition?
 
-You must choose the better reply unless they are truly indistinguishable in both criteria. Use your best judgment — do not default to “tie” unless there is no meaningful difference.
+    Respond with exactly one of these options and nothing else:
+    - model1
+    - model2
+    - tie
+    """
 
-Respond with exactly one word, and nothing else:
-- model1  (if Reply A is better)
-- model2  (if Reply B is better)
-- tie     (only if they are *truly* equal in both criteria)
-"""
-
+    # 用户提示词，包含 Original Email、Reply A、Reply B
     user_prompt = f"""
+Original Email:
+{original_email}
+
 Reply A:
 {reply_a}
 
 Reply B:
 {reply_b}
 
-Which reply is better?
+Which reply is better? Answer with exactly one word: model1, model2, or tie.
 """
 
     try:
         response = client.messages.create(
-            model="claude-3-sonnet-20240229",  # Change to sonnet/opus if desired
-            max_tokens=1,
+            # model="claude-3-sonnet-20240229",  # Use the latest available model
+            model="claude-3-7-sonnet-latest",  # Use the latest available model
+            max_tokens=10,  # 增加一点保证能捕获完整答案
             temperature=0,
             system=system_prompt,
             messages=[
                 {"role": "user", "content": user_prompt}
             ]
         )
+
+        # 注意这里的解析方式，根据你的实际数据结构进行调整
+        # 假设 response.content[0].text 为 Claude 的文本输出
         result = response.content[0].text.strip().lower()
-        if result in ["model1", "model2", "tie"]:
-            return result
+
+        if "model1" in result:
+            return "model1"
+        elif "model2" in result:
+            return "model2"
+        elif "tie" in result:
+            return "tie"
         else:
+            print(f"⚠️ Unexpected response: {result}")
             return "tie"
     except Exception as e:
         print("❌ Claude API error:", e)
@@ -91,8 +92,9 @@ def compare_two_columns(
     label: str = None
 ) -> dict:
     """
-    Compare two Excel columns (1-indexed). Log each comparison result.
-    Return win/tie counts.
+    Compare two Excel columns (1-indexed). 
+    Also includes column 1 (original email) as context in judge_func.
+    Log each comparison result, return overall stats.
     """
     wb = load_workbook(workbook_path)
     sheet = wb.active
@@ -107,14 +109,20 @@ def compare_two_columns(
     logs = []
 
     for idx, row in enumerate(rows):
-        reply_a = row[col_a - 1] if len(row) >= col_a else None
-        reply_b = row[col_b - 1] if len(row) >= col_b else None
+        # row[0]假设就是第一列：Original Email
+        original_email = row[0] if len(row) >= 1 and row[0] else ""
+        reply_a = row[col_a - 1] if len(row) >= col_a and row[col_a - 1] else ""
+        reply_b = row[col_b - 1] if len(row) >= col_b and row[col_b - 1] else ""
+
+        # 如果 reply_a 或 reply_b 为空，则跳过此行
         if not reply_a or not reply_b:
             continue
 
         total_count += 1
         start_time = time.time()
-        result_raw = judge_func(reply_a, reply_b)
+
+        # 将 original_email 一并传入
+        result_raw = judge_func(original_email, reply_a, reply_b)
         elapsed = time.time() - start_time
 
         if result_raw == "model1":
@@ -129,6 +137,7 @@ def compare_two_columns(
 
         logs.append({
             "Index": idx + 2 if skip_header else idx + 1,
+            "Original Email": original_email,
             "Model A": reply_a,
             "Model B": reply_b,
             "Compare Result": result_str,
@@ -139,7 +148,7 @@ def compare_two_columns(
         os.makedirs(log_path, exist_ok=True)
         filename = f"{log_path}/comparison_log_{label.replace(' ', '_')}.csv"
         with open(filename, mode="w", encoding="utf-8-sig", newline="") as f:
-            fieldnames = ["Index", "Model A", "Model B", "Compare Result", "Time (sec)"]
+            fieldnames = ["Index", "Original Email", "Model A", "Model B", "Compare Result", "Time (sec)"]
             writer = csv.DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(logs)
@@ -156,9 +165,10 @@ def compare_two_columns(
 # Horizontal stacked bar chart
 ########################
 
-def create_stacked_bar_chart(results_list: list, title: str = "Human Evaluation"):
+def create_stacked_bar_chart(results_list: list, title: str = "Model Evaluation", save_path: str = None):
     """
     Plot win/tie percentages for each model pair comparison.
+    Optionally save the figure to `save_path`.
     """
     labels = [r["label"] for r in results_list]
     modelA_pct, tie_pct, modelB_pct = [], [], []
@@ -196,12 +206,20 @@ def create_stacked_bar_chart(results_list: list, title: str = "Human Evaluation"
 
     ax.set_yticks(list(x_positions))
     ax.set_yticklabels(labels)
-    ax.set_xlabel("% win rate")
+    ax.set_xlabel("% Win Rate")
     ax.set_xlim([0, 100])
     ax.set_title(title)
     ax.invert_yaxis()
     ax.legend(loc="lower right")
     plt.tight_layout()
+
+    # 保存图片到指定路径
+    if save_path:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        fig.savefig(save_path)
+        print(f"✅ Chart saved to: {save_path}")
+
+    # 显示图形（如果不需要在屏幕上显示，可以注释掉）
     plt.show()
 
 ########################
@@ -209,14 +227,16 @@ def create_stacked_bar_chart(results_list: list, title: str = "Human Evaluation"
 ########################
 
 def main():
-    workbook_path = "enron_output.xlsx"
+    workbook_path = "enron/enron_output.xlsx"
 
     # Define (label, column A, column B)
+    # 注意：表格第一列是 original email (列索引=1)；第二列第三列等为不同模型回复
+    # 此处只是演示：我们要比较 colA vs colB。你可以根据实际表格中的列号来修改。
     pairs_to_compare = [
-        ("gemma3:1b vs GPT-4", 2, 7),
-        ("gemma:2b vs GPT-4", 3, 7),
-        ("llama3.2:3b vs GPT-4", 4, 7),
-        ("mistral vs GPT-4", 5, 7),
+        ("gemma3:1b vs GPT-4o", 2, 6),
+        ("gemma:2b vs GPT-4o", 3, 6),
+        ("llama3.2:3b vs GPT-4o", 4, 6),
+        ("mistral vs GPT-4o", 5, 6),
     ]
 
     results_for_chart = []
@@ -228,7 +248,7 @@ def main():
             col_b=colB,
             skip_header=True,
             judge_func=judge_replies,
-            log_path="logs_claude_2",
+            log_path="enron/logs_4local_gpt4o_3",
             label=pair_label
         )
 
@@ -240,7 +260,13 @@ def main():
             "total": comparison["total"],
         })
 
-    create_stacked_bar_chart(results_for_chart, title="Claude-Based Email Reply Evaluation")
+    # 图片保存路径
+    chart_save_path = os.path.join("enron", "logs_4local_gpt4o_3", "evaluation_chart.png")
+    create_stacked_bar_chart(
+        results_for_chart,
+        title="Claude-Based Email Reply Evaluation",
+        save_path=chart_save_path
+    )
 
 if __name__ == "__main__":
     main()

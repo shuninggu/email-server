@@ -6,14 +6,14 @@ import logging
 # ------------------------------------------------------------------------------
 # 1) Configuration
 # ------------------------------------------------------------------------------
-input_file = "enron.xlsx"          # Input Excel file
-output_file = "enron_output.xlsx"  # Output Excel file
+input_file = "dataset/Complex_Email_Benchmark.csv"          # Input Excel file
+output_file = "dataset/complex_output.xlsx"  # Output Excel file
 
 # Set up logging to a file. 
 # level=logging.INFO ensures info, warning, error, critical logs are captured.
 # You can also set a different format if you like.
 logging.basicConfig(
-    filename='reply_log.txt', 
+    filename='dataset/complex_log.txt', 
     level=logging.INFO, 
     format='%(asctime)s %(levelname)s: %(message)s'
 )
@@ -31,7 +31,6 @@ model_list = [
     "gemma:2b", 
     "llama3.2:3b", 
     "mistral"
-
 ]
 
 # Corresponding column names to store the replies
@@ -46,7 +45,9 @@ output_col_names = [
 # ------------------------------------------------------------------------------
 # 2) Read the Excel file
 # ------------------------------------------------------------------------------
-df = pd.read_excel(input_file, dtype=str)
+# df = pd.read_excel(input_file, dtype=str)
+df = pd.read_csv(input_file, dtype=str)
+
 
 # Ensure the DataFrame has at least 1 column (the email body)
 if df.shape[1] < 1:
@@ -121,4 +122,4 @@ print(f"\nProcessing completed (first {num_rows-1} rows).")
 print(f"Total execution time: {total_time:.2f} seconds.")
 print(f"Average time per row: {avg_time_per_row:.2f} seconds.")
 print(f"The updated file is saved to: {output_file}")
-print("Logs have been recorded in reply_log.txt.")
+print("Logs have been recorded in dataset/complex_log.txt.")
