@@ -1,12 +1,17 @@
-import subprocess
+import os
 import time
+from openai import OpenAI
+import pandas as pd
 
 # ------------------------------------------------------------------------------
 # 1) Configuration
 # ------------------------------------------------------------------------------
 # Input and output files
 input_file = "enron_labeled.xlsx"
-output_file = "enron/enron_gemma3_1b_prompt8.xlsx"
+output_file = "enron/enron_gpt4_prompt8_gpt.xlsx"
+
+# Set your OpenAI API key from environment variable
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # Prompt template (example template):
 PROMPT_TEMPLATE_8 = """In the following sentence, please convert all mentions of specific names, specific places, and numbers that may be sensitive into a format that represents the type of information they belong to.
@@ -29,50 +34,40 @@ Real Output:
 
 """
 
-# List of your local model identifiers
-model_list = [
-    "gemma3:1b",
-    "gemma:2b",
-    "llama3.2:3b",
-    "mistral"
-]
-
-# Corresponding column names to store model replies
-output_col_names = [
-    "Private_gemma3:1b",
-    "Private_gemma:2b",
-    "Private_llama3.2:3b",
-    "Private_mistral"
-]
-
 # ------------------------------------------------------------------------------
 # 2) Read the Excel file
 # ------------------------------------------------------------------------------
 df = pd.read_excel(input_file, dtype=str)
 num_rows = len(df)
 
-# Ensure each output column exists in DataFrame
-for col_name in output_col_names:
-    if col_name not in df.columns:
-        df[col_name] = ""
+# Create a new column for GPT-4 responses if it doesn't exist
+if "Private_GPT4" not in df.columns:
+    df["Private_GPT4"] = ""
 
 # ------------------------------------------------------------------------------
-# 3) Define a function to call the local models
+# 3) Define a function to call GPT-4
 # ------------------------------------------------------------------------------
-def call_llama_local(model_name: str, email_body: str) -> str:
+def call_gpt4(email_body: str) -> str:
     """
-    Calls the specified local LLaMA-like model via `ollama run <model_name>` and returns the model output.
+    Calls GPT-4 via OpenAI's ChatCompletion endpoint and returns the response.
     """
     prompt = PROMPT_TEMPLATE_8.format(email_body)
 
-    process = subprocess.run(
-        ["ollama", "run", model_name],
-        input=prompt,
-        text=True,
-        capture_output=True
-    )
-
-    return process.stdout.strip()
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            temperature=0.0,  # Adjust temperature as needed
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        print(f"Error calling GPT-4: {e}")
+        return "Error or Timeout"
 
 # ------------------------------------------------------------------------------
 # 4) Process rows and measure execution time
@@ -83,19 +78,16 @@ start_time = time.time()
 rows_to_process = min(105, num_rows)
 
 for idx in range(rows_to_process):
-    # Read the email text from the first column (assuming it's column index 0)
     email_text = df.iloc[idx, 0] if pd.notna(df.iloc[idx, 0]) else ""
 
-    # Loop over each model and store the result in the corresponding column
-    for model_name, col_name in zip(model_list, output_col_names):
-        row_start_time = time.time()
-        model_response = call_llama_local(model_name, email_text)
-        row_end_time = time.time()
+    row_start_time = time.time()
+    model_response = call_gpt4(email_text)
+    row_end_time = time.time()
 
-        # Save the model's prediction to the DataFrame
-        df.at[idx, col_name] = model_response
+    # Save the model's prediction to the DataFrame
+    df.at[idx, "Private_GPT4"] = model_response
 
-        print(f"Processed row {idx}/{rows_to_process - 1} with model {model_name} in {row_end_time - row_start_time:.2f} seconds.")
+    print(f"Processed row {idx}/{rows_to_process - 1} in {row_end_time - row_start_time:.2f} seconds.")
 
 end_time = time.time()
 total_time = end_time - start_time
@@ -109,5 +101,5 @@ df.to_excel(output_file, index=False)
 # Print summary statistics
 print(f"\nProcessing completed (first {rows_to_process} rows).")
 print(f"Total execution time: {total_time:.2f} seconds.")
-print(f"Average time per row (for all models): {avg_time_per_row:.2f} seconds.")
+print(f"Average time per row: {avg_time_per_row:.2f} seconds.")
 print(f"The updated file is saved to: {output_file}")
