@@ -8,7 +8,7 @@ import pandas as pd
 # ------------------------------------------------------------------------------
 # Input and output files
 input_file = "enron_labeled.xlsx"
-output_file = "enron/enron_gpt4_prompt8_gpt.xlsx"
+output_file = "enron/enron_gpt4_prompt8_gpt4o.xlsx"
 
 # Set your OpenAI API key from environment variable
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -55,7 +55,7 @@ def call_gpt4(email_body: str) -> str:
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
