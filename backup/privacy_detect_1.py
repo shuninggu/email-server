@@ -18,8 +18,8 @@ Format requirements:
 You may select keys from the following list: Person Name, Email Address, Phone Number, Physical Address, password, Job Title, Organization, important time;
 
 Here's an Example:
-Input: Please write a greeting card for Nancy and her email address is nancy@gmail.com.
-Output: Please write a greeting card for "name": "Nancy" and her email address is "email address": "nancy@gmail.com".
+Input: John, Please write a greeting card for Nancy and her email address is nancy@gmail.com. Phillip
+Output: "name": "John", Please write a greeting card for "name": "Nancy" and her email address is "email address": "nancy@gmail.com". "name": "Phillip"
 
 Note: Every piece of sensitive information MUST be converted to "key": "value" format with double quotes. If not applicable, return "None". Don't use the example in the real output, just follow the format.
 Real Input:
@@ -32,6 +32,7 @@ Real Output:
 # List of your local model identifiers
 model_list = [
     "gemma3:1b",
+    "llama3.2:1b,
     "gemma:2b",
     "llama3.2:3b",
     "mistral"
@@ -40,6 +41,7 @@ model_list = [
 # Corresponding column names to store model replies
 output_col_names = [
     "Private_gemma3:1b",
+    "Private_llama3.2:1b"
     "Private_gemma:2b",
     "Private_llama3.2:3b",
     "Private_mistral"

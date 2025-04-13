@@ -3,26 +3,41 @@ import re
 import json
 
 # 读取原始数据文件（请确保路径正确）
-input_file = "enron/enron_gemma3_1b_prompt8.xlsx"
+input_file = "enron/enron_gpt4_prompt8_gpt4o.xlsx"
 df = pd.read_excel(input_file)
 
 # 定义需要进行正则匹配的模型输出列名称
 # 这里假设这5列分别为：
-model_columns = [
-    "Private_gemma3:1b", 
-    "Private_gemma:2b", 
-    "Private_llama3.2:3b", 
-    "Private_mistral", 
+# model_columns = [ 
+#     "Private_gemma:2b", 
+#     "Private_llama3.2:3b", 
+#     "Private_gemma3",
+#     "Private_mistral",
+#     "Private_llama3.2:1b",
+#     "Private_qwen2.5:3b",
+#     "Private_GPT4"
+# ]
+
+# # 定义新列的名称，新列将在新Excel文件中作为第9-13列输出
+# new_columns = [
+#     "Extracted_gemma:2b", 
+#     "Extracted_llama3.2:3b", 
+#     "Extracted_gemma3", 
+#     "Extracted_mistral", 
+#     "Extracted_llama3.2:1b", 
+#     "Extracted_qwen2.5:3b",
+#     "Extracted_GPT4",
+    
+# ]
+
+model_columns = [ 
     "Private_GPT4"
 ]
 
 # 定义新列的名称，新列将在新Excel文件中作为第9-13列输出
 new_columns = [
-    "Extracted_gemma3:1b", 
-    "Extracted_gemma:2b", 
-    "Extracted_llama3.2:3b", 
-    "Extracted_mistral", 
-    "Extracted_GPT4"
+    "Extracted_GPT4o",
+    
 ]
 
 # 定义正则表达式模式，匹配形如："some key" 可能有空格冒号可能有空格 "some value"
@@ -54,7 +69,7 @@ for old_col, new_col in zip(model_columns, new_columns):
     df[new_col] = df[old_col].apply(extract_values)
 
 # 保存结果到新的Excel文件中
-output_file = "enron/enron_private_output.xlsx"
+output_file = "enron/prompt9_3_extracted.xlsx"
 df.to_excel(output_file, index=False)
 
 print(f"提取完成，新文件保存为 {output_file}")
