@@ -227,16 +227,20 @@ def create_stacked_bar_chart(results_list: list, title: str = "Model Evaluation"
 ########################
 
 def main():
-    workbook_path = "enron/enron_output.xlsx"
+    workbook_path = "all/replies.xlsx"
 
     # Define (label, column A, column B)
     # 注意：表格第一列是 original email (列索引=1)；第二列第三列等为不同模型回复
     # 此处只是演示：我们要比较 colA vs colB。你可以根据实际表格中的列号来修改。
+    # pairs_to_compare = [
+    #     ("gemma3:1b vs GPT-4o", 2, 6),
+    #     ("gemma:2b vs GPT-4o", 3, 6),
+    #     ("llama3.2:3b vs GPT-4o", 4, 6),
+    #     ("mistral vs GPT-4o", 5, 6),
+    # ]
     pairs_to_compare = [
-        ("gemma3:1b vs GPT-4o", 2, 6),
-        ("gemma:2b vs GPT-4o", 3, 6),
-        ("llama3.2:3b vs GPT-4o", 4, 6),
-        ("mistral vs GPT-4o", 5, 6),
+        ("llama3.2:3b_masked vs llama3.2:3b", 11, 4),
+        ("llama3.2:3b_masked vs GPT-4o", 11, 6),
     ]
 
     results_for_chart = []
@@ -248,7 +252,8 @@ def main():
             col_b=colB,
             skip_header=True,
             judge_func=judge_replies,
-            log_path="enron/logs_4local_gpt4o_3",
+            # log_path="enron/logs_4local_gpt4o_3",
+            log_path="all/claude_judge_llama3.2_3b",
             label=pair_label
         )
 

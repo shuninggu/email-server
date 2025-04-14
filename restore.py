@@ -2,90 +2,73 @@ import re
 import json
 import pandas as pd
 
-def process_restore_excel(
-    input_excel_path: str = "all/restore.xlsx",
-    output_excel_path: str = "all/restore_processed.xlsx",
-    output_json_path: str = "all/storage_privacy.json"
+def restore_reply(
+    input_excel_path="all/with_reply.xlsx",
+    output_excel_path="all/reply_restored.xlsx"
 ):
-    print("开始处理Excel:", input_excel_path)
+    # 1. 读取 Excel
+    print("读取文件:", input_excel_path)
     df = pd.read_excel(input_excel_path)
 
-    col_body = "Body"
-    col_private_llm = "Private_llama3.2:3b"
-    col_json = "storage_privacy.json"
-    col_result = "result"
+    # 确保存在所需列
+    col_reply_mask = "reply_masked"
+    col_privacy_json = "storage_privacy.json"
+    col_restored = "restored_value"  # 新增列
 
-    if col_body not in df.columns or col_private_llm not in df.columns:
-        raise ValueError("Excel文件中缺少所需的列(body或Private_llama3.2:3b)")
+    if col_reply_mask not in df.columns or col_privacy_json not in df.columns:
+        raise ValueError(f"Excel中缺少 {col_reply_mask} 或 {col_privacy_json} 列。")
 
-    # 正则模式：匹配 "key" : "value"
-    pattern = re.compile(r'"\s*([^"]+)\s*"\s*:\s*"([^"]+)"')
-
-    global_pairs = []
+    # 用于匹配 reply_mask 中的 [xxxx]
+    # 注意：如果占位符中可能存在更复杂的字符，需要适当调整
+    pattern_placeholder = re.compile(r"\[[^\]]+\]")
 
     total_rows = len(df)
-    print(f"共读取到 {total_rows} 行数据，即将开始处理...")
+    print(f"共 {total_rows} 行，开始处理占位符替换...")
 
-    for row_idx in range(total_rows):
-        if row_idx % 50 == 0:
-            print(f">> 正在处理第 {row_idx + 1} 行 / 共 {total_rows} 行...")
+    for idx in range(total_rows):
+        # 每隔50行打印一下进度（可根据需要调整）
+        if idx % 50 == 0:
+            print(f"正在处理第 {idx+1} / {total_rows} 行...")
 
-        original_text = str(df.at[row_idx, col_body])   # A
-        processed_text = str(df.at[row_idx, col_private_llm])  # B
+        reply_text = str(df.at[idx, col_reply_mask])  # reply_mask 的文本
+        privacy_str = str(df.at[idx, col_privacy_json])  # storage_privacy.json 的字符串
 
-        # 在B中查找所有的 key-value 对
-        matches = pattern.findall(processed_text)
-        seen_values = set()
+        # 如果这行的 storage_privacy.json 为 "None"，则无需替换
+        if privacy_str == "None":
+            # 直接把 reply_mask 原样放到 restored_value
+            df.at[idx, col_restored] = reply_text
+            continue
 
-        row_pairs = []
-        pair_id = 1
+        # 尝试将该列解析为 JSON 数组
+        try:
+            records = json.loads(privacy_str)
+        except json.JSONDecodeError:
+            # 解析失败，可能是格式问题；可根据实际需求做其他处理
+            df.at[idx, col_restored] = reply_text
+            continue
 
-        # 针对每个匹配进行处理
-        for key_str, value_str in matches:
-            if value_str not in seen_values:
-                seen_values.add(value_str)
-                record = {
-                    "id": pair_id,
-                    "key": key_str.strip(),
-                    "originalValue": value_str,
-                    "replacedValue": f"[{key_str.strip()}_{pair_id}]"
-                }
-                row_pairs.append(record)
-                pair_id += 1
+        # 在 reply_text 中查找所有占位符
+        placeholders = pattern_placeholder.findall(reply_text)
+        # placeholders 可能重复出现，如 ["[name_1]", "[name_1]", "[school_2]", ...]
 
-        # 在 original_text 中逐个替换
-        result_text = original_text
-        for pair in row_pairs:
-            # 如果想要更加详细的log，比如每次替换什么，可以在这里print出来
-            # print(f"  - 替换: {pair['originalValue']} -> {pair['replacedValue']}")
-            result_text = result_text.replace(pair["originalValue"], pair["replacedValue"])
+        # 按出现顺序依次替换
+        for ph in placeholders:
+            # 在当前记录数组中查找 replacedValue == ph 的项
+            # 可能不止一个，但一般而言只会有一个匹配
+            match_item = next((item for item in records if item.get("replacedValue") == ph), None)
+            if match_item:
+                original_val = match_item.get("originalValue", "")
+                # 将 reply_text 中的该占位符替换为 originalValue
+                reply_text = reply_text.replace(ph, original_val)
 
-        # 写入 dataFrame
-        if len(row_pairs) == 0:
-            df.at[row_idx, col_json] = "None"
-        else:
-            df.at[row_idx, col_json] = json.dumps(row_pairs, ensure_ascii=False)
+        # 将最终替换完的结果写入
+        df.at[idx, col_restored] = reply_text
 
-        df.at[row_idx, col_result] = result_text
-
-        # 将本行结果追加到全局列表
-        for pair in row_pairs:
-            global_pairs.append({
-                "rowIndex": row_idx,
-                "id": pair["id"],
-                "key": pair["key"],
-                "originalValue": pair["originalValue"],
-                "replacedValue": pair["replacedValue"]
-            })
-
-    print("所有行处理完毕，正在写出全局 JSON 文件:", output_json_path)
-    with open(output_json_path, 'w', encoding='utf-8') as f:
-        json.dump(global_pairs, f, ensure_ascii=False, indent=2)
-
-    print("正在写出处理结果到新的Excel文件:", output_excel_path)
+    # 2. 写出新的 Excel
+    print("全部处理完成，写出结果到:", output_excel_path)
     df.to_excel(output_excel_path, index=False)
-    print("处理完成！")
+    print("处理结束。")
 
 
 if __name__ == "__main__":
-    process_restore_excel()
+    restore_reply()

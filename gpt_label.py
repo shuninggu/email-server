@@ -14,12 +14,22 @@ def detect_private_values(email_text):
     Use GPT-4 to extract private values from an email text.
     The response should be a JSON list (e.g. ["Randy", "Patti S", "Phillip"]).
     """
+    # prompt = (
+    #     "Extract any private values from the following email text. "
+    #     "Private values include names, email addresses, phone numbers, or any sensitive identifiers. "
+    #     "Return the extracted values in a JSON list. "
+    #     "If no private values are found, return an empty JSON list ([]).\n\n"
+    #     f"Email text:\n{email_text}"
+    # )
+    
     prompt = (
-        "Extract any private values from the following email text. "
-        "Private values include names, email addresses, phone numbers, or any sensitive identifiers. "
-        "Return the extracted values in a JSON list. "
-        "If no private values are found, return an empty JSON list ([]).\n\n"
-        f"Email text:\n{email_text}"
+       """You are an expert in extracting private values from email texts.
+Given the following email text, identify all private values present such as personal names, email addresses, phone numbers, and any sensitive identifiers.
+Please respond with a JSON array in the following format (e.g., ["Randy", "Patti S", "Phillip"]).
+Email:
+{}
+====================
+"""
     )
     
     # Call the GPT-4 chat completion API

@@ -6,8 +6,8 @@ import pandas as pd
 # 1) 配置部分
 # ------------------------------------------------------------------------------
 # 输入输出文件
-input_file = "enron_labeled.xlsx"
-output_file = "all/privacy_with_time.xlsx"  # 输出文件名稍作修改
+input_file = "enron.xlsx"
+output_file = "all/detection_time_llama.xlsx"  # 输出文件名稍作修改
 
 PROMPT_TEMPLATE_8 = """In the following sentence, please convert all mentions of specific names, specific places, and numbers that may be sensitive into a format that represents the type of information they belong to.
 Format requirements:
@@ -50,27 +50,34 @@ Real Output:
 
 # 本地模型列表（更新后的模型名称列表）
 model_list = [
-    "gemma3:1b",
-    "gemma:2b",
-    "llama3.2:3b",
-    "mistral"
+    "llama3.2:3b"
 ]
 
 # 存储模型回复的列名
 output_col_names = [
-    "Private_gemma3:1b",
-    "Private_gemma:2b",
-    "Private_llama3.2:3b",
-    "Private_mistral"
+    "Private_llama3.2:3b"
 ]
 
 # 存储每个模型处理时间的列名
 time_col_names = [
-    "Time_gemma3:1b",
-    "Time_gemma:2b",
-    "Time_llama3.2:3b",
-    "Time_mistral"
+    "Time_llama3.2:3b"
 ]
+
+# # 模型回复的列名
+# output_col_names = [
+#     "Private_gemma3:1b",
+#     "Private_gemma:2b",
+#     "Private_llama3.2:3b",
+#     "Private_mistral"
+# ]
+
+# # 存储每个模型处理时间的列名
+# time_col_names = [
+#     "Time_gemma3:1b",
+#     "Time_gemma:2b",
+#     "Time_llama3.2:3b",
+#     "Time_mistral"
+# ]
 
 # ------------------------------------------------------------------------------
 # 2) 读取 Excel 文件

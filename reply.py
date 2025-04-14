@@ -6,12 +6,10 @@ import logging
 # ------------------------------------------------------------------------------
 # 1) Configuration
 # ------------------------------------------------------------------------------
-input_file = "dataset/Complex_Email_Benchmark.csv"          # Input Excel file
-output_file = "dataset/complex_output.xlsx"  # Output Excel file
+input_file = "enron.xlsx"          # Input Excel file
+output_file = "dataset/reply_time_llama.xlsx"  # Output Excel file
 
 # Set up logging to a file. 
-# level=logging.INFO ensures info, warning, error, critical logs are captured.
-# You can also set a different format if you like.
 logging.basicConfig(
     filename='dataset/complex_log.txt', 
     level=logging.INFO, 
@@ -25,38 +23,32 @@ Email:
 {}
 ===================="""
 
-# Define your model names as needed
 model_list = [
-    "gemma3:1b", 
-    "gemma:2b", 
-    "llama3.2:3b", 
-    "mistral"
+    "llama3.2:3b"
 ]
 
-# Corresponding column names to store the replies
 output_col_names = [
-    "Reply_gemma3:1b", 
-    "Reply_gemma:2b", 
-    "Reply_llama3.2:3b", 
-    "Reply_mistral"
-
+    "Reply_llama3.2:3b"
 ]
 
 # ------------------------------------------------------------------------------
 # 2) Read the Excel file
 # ------------------------------------------------------------------------------
-# df = pd.read_excel(input_file, dtype=str)
-df = pd.read_csv(input_file, dtype=str)
-
+df = pd.read_excel(input_file, dtype=str)
+# df = pd.read_csv(input_file, dtype=str)
 
 # Ensure the DataFrame has at least 1 column (the email body)
 if df.shape[1] < 1:
     raise ValueError("The Excel file does not have at least one column for email text.")
 
-# Create new columns for the 4 model outputs if they do not exist
+# Create new columns for the model outputs if they do not exist
 for col_name in output_col_names:
     if col_name not in df.columns:
         df[col_name] = ""
+
+# Create a new column 'reply_time' for storing each row's processing time
+if "reply_time" not in df.columns:
+    df["reply_time"] = ""
 
 # ------------------------------------------------------------------------------
 # 3) Define a function to call local LLaMA models via ollama
@@ -89,7 +81,7 @@ def call_local_model(model_name: str, email_body: str, row_index: int) -> str:
     return output_text
 
 # ------------------------------------------------------------------------------
-# 4) Process each row (skipping header), measure time
+# 4) Process each row (skipping header), measure time and record processing time
 # ------------------------------------------------------------------------------
 start_time = time.time()
 num_rows = len(df)
@@ -97,16 +89,21 @@ num_rows = len(df)
 # 如果只想处理前 5 行（且第 1 行是表头），则可以将下面这行改为：
 # for idx in range(1, min(num_rows, 6)):
 for idx in range(1, num_rows):
+    # 读取第一列的邮件内容
     email_text = df.iloc[idx, 0] if pd.notna(df.iloc[idx, 0]) else ""
 
     row_start_time = time.time()
     for m_idx, model_name in enumerate(model_list):
-        # Call the local model and store the result
+        # 调用模型获取回复，并存储结果
         response_text = call_local_model(model_name, email_text, idx)
         df.at[idx, output_col_names[m_idx]] = response_text
     row_end_time = time.time()
 
-    print(f"Processed row {idx}/{num_rows - 1} in {row_end_time - row_start_time:.2f} seconds.")
+    # 计算并记录该行处理的时间
+    elapsed_row_time = row_end_time - row_start_time
+    df.at[idx, "reply_time"] = elapsed_row_time
+
+    print(f"Processed row {idx}/{num_rows - 1} in {elapsed_row_time:.2f} seconds.")
 
 end_time = time.time()
 total_time = end_time - start_time
