@@ -5,7 +5,7 @@ import numpy as np
 # ---------------------------
 # 1. 读取数据
 # ---------------------------
-input_file = "all/all_2.xlsx"
+input_file = "gemma27b/restored_reply.xlsx"
 df = pd.read_excel(input_file)
 
 # ---------------------------
