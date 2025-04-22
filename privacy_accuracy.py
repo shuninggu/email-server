@@ -5,7 +5,7 @@ import numpy as np
 # ---------------------------
 # 1. 读取数据
 # ---------------------------
-input_file = "enron/all.xlsx"
+input_file = "all/all_2.xlsx"
 df = pd.read_excel(input_file)
 
 # ---------------------------
@@ -15,13 +15,17 @@ df = pd.read_excel(input_file)
 ground_truth_col = "Ground Truth"
 
 # 模型预测结果列
+# model_cols = [
+#     "Extracted_gemma3:1b",
+#     "Extracted_gemma:2b",
+#     "Extracted_llama3.2:3b",
+#     "Extracted_mistral",
+#     "Extracted_GPT4",
+#     "Extracted_GPT4o"
+# ]
+
 model_cols = [
-    "Extracted_gemma3:1b",
-    "Extracted_gemma:2b",
-    "Extracted_llama3.2:3b",
-    "Extracted_mistral",
-    "Extracted_GPT4",
-    "Extracted_GPT4o"
+    "Extracted_gemma3:27b"
 ]
 
 # ---------------------------
@@ -138,7 +142,7 @@ results_df = pd.DataFrame(results_list)
 # ---------------------------
 # 6. 保存评估结果
 # ---------------------------
-results_output_file = "enron/all_precision.xlsx"
+results_output_file = "enron/all_precision_3.xlsx"
 results_df.to_excel(results_output_file, index=False)
 
 print("Evaluation with precision, recall and F1 completed.")

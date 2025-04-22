@@ -7,8 +7,8 @@ import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # 文件路径
-input_file = "all/restore_processed.xlsx"   # 输入 Excel 文件
-output_file = "all/with_reply.xlsx"           # 输出 Excel 文件
+input_file = "gemma27b/mask_prompt.xlsx"   # 输入 Excel 文件
+output_file = "gemma27b/with_remote_reply.xlsx"           # 输出 Excel 文件
 
 # 定义提示模板：
 # 系统要求仅返回邮件正文，不包含推理过程
@@ -23,7 +23,7 @@ model_gpt4o = "gpt-4o"
 
 # 定义输入和输出列名称
 col_input = "masked_prompt"
-col_output = "reply_masked"
+col_output = "masked_reply"
 
 # ------------------------------------------------------------------------------
 # 1) 读取 Excel 文件

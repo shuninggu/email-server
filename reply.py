@@ -7,7 +7,7 @@ import logging
 # 1) Configuration
 # ------------------------------------------------------------------------------
 input_file = "enron.xlsx"          # Input Excel file
-output_file = "dataset/reply_time_llama.xlsx"  # Output Excel file
+output_file = "all/reply_time_qwen7b.xlsx"  # Output Excel file
 
 # Set up logging to a file. 
 logging.basicConfig(
@@ -24,11 +24,11 @@ Email:
 ===================="""
 
 model_list = [
-    "llama3.2:3b"
+    "qwen2.5:7b"
 ]
 
 output_col_names = [
-    "Reply_llama3.2:3b"
+    "Reply_qwen2.5:7b"
 ]
 
 # ------------------------------------------------------------------------------
@@ -86,8 +86,7 @@ def call_local_model(model_name: str, email_body: str, row_index: int) -> str:
 start_time = time.time()
 num_rows = len(df)
 
-# 如果只想处理前 5 行（且第 1 行是表头），则可以将下面这行改为：
-# for idx in range(1, min(num_rows, 6)):
+# 如果只想处理前 5 行（且第 1 行是表头），可将下面循环改为 range(1, min(num_rows, 6))。
 for idx in range(1, num_rows):
     # 读取第一列的邮件内容
     email_text = df.iloc[idx, 0] if pd.notna(df.iloc[idx, 0]) else ""
@@ -105,12 +104,17 @@ for idx in range(1, num_rows):
 
     print(f"Processed row {idx}/{num_rows - 1} in {elapsed_row_time:.2f} seconds.")
 
+    # === 新增：每处理 10 行就将结果写入一次 Excel，以防中途意外导致数据丢失 ===
+    if idx % 10 == 0:
+        df.to_excel(output_file, index=False)
+        print(f"Temporary save: wrote partial results to {output_file} (after row {idx}).")
+
 end_time = time.time()
 total_time = end_time - start_time
 avg_time_per_row = total_time / (num_rows - 1) if num_rows > 1 else 0
 
 # ------------------------------------------------------------------------------
-# 5) Save the updated DataFrame to a new XLSX file
+# 5) 最后一次完整保存，并打印摘要
 # ------------------------------------------------------------------------------
 df.to_excel(output_file, index=False)
 

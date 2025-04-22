@@ -239,8 +239,8 @@ def main():
     #     ("mistral vs GPT-4o", 5, 6),
     # ]
     pairs_to_compare = [
-        ("llama3.2:3b_masked vs llama3.2:3b", 11, 4),
-        ("llama3.2:3b_masked vs GPT-4o", 11, 6),
+        ("PrivyBridge vs gemma3:27b", 7, 8),
+        ("PrivyBridge vs GPT-4o", 7, 6),
     ]
 
     results_for_chart = []
@@ -253,7 +253,7 @@ def main():
             skip_header=True,
             judge_func=judge_replies,
             # log_path="enron/logs_4local_gpt4o_3",
-            log_path="all/claude_judge_llama3.2_3b",
+            log_path="gemma27b",
             label=pair_label
         )
 

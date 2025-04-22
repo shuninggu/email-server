@@ -3,17 +3,17 @@ import json
 import pandas as pd
 
 def restore_reply(
-    input_excel_path="all/with_reply.xlsx",
-    output_excel_path="all/reply_restored.xlsx"
+    input_excel_path="gemma27b/with_remote_reply.xlsx",
+    output_excel_path="gemma27b/restored_reply.xlsx"
 ):
     # 1. 读取 Excel
     print("读取文件:", input_excel_path)
     df = pd.read_excel(input_excel_path)
 
     # 确保存在所需列
-    col_reply_mask = "reply_masked"
+    col_reply_mask = "masked_reply"
     col_privacy_json = "storage_privacy.json"
-    col_restored = "restored_value"  # 新增列
+    col_restored = "restored_reply"  # 新增列
 
     if col_reply_mask not in df.columns or col_privacy_json not in df.columns:
         raise ValueError(f"Excel中缺少 {col_reply_mask} 或 {col_privacy_json} 列。")

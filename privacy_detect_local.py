@@ -7,7 +7,7 @@ import pandas as pd
 # ------------------------------------------------------------------------------
 # 输入输出文件
 input_file = "enron.xlsx"
-output_file = "all/detection_time_llama.xlsx"  # 输出文件名稍作修改
+output_file = "all/detection_time_qwen7b.xlsx"  # 输出文件名稍作修改
 
 PROMPT_TEMPLATE_8 = """In the following sentence, please convert all mentions of specific names, specific places, and numbers that may be sensitive into a format that represents the type of information they belong to.
 Format requirements:
@@ -50,17 +50,17 @@ Real Output:
 
 # 本地模型列表（更新后的模型名称列表）
 model_list = [
-    "llama3.2:3b"
+    "qwen2.5:7b"
 ]
 
 # 存储模型回复的列名
 output_col_names = [
-    "Private_llama3.2:3b"
+    "Private_qwen2.5:7b"
 ]
 
 # 存储每个模型处理时间的列名
 time_col_names = [
-    "Time_llama3.2:3b"
+    "Time_qwen2.5:7b"
 ]
 
 # # 模型回复的列名

@@ -3,17 +3,17 @@ import json
 import pandas as pd
 
 def process_restore_excel(
-    input_excel_path: str = "all/restore.xlsx",
-    output_excel_path: str = "all/restore_processed.xlsx",
-    output_json_path: str = "all/storage_privacy.json"
+    input_excel_path: str = "gemma27b/privacy.xlsx",
+    output_excel_path: str = "gemma27b/mask_prompt.xlsx",
+    output_json_path: str = "gemma27b/storage_privacy.json"
 ):
     print("开始处理Excel:", input_excel_path)
     df = pd.read_excel(input_excel_path)
 
     col_body = "Body"
-    col_private_llm = "Private_llama3.2:3b"
+    col_private_llm = "Private_gemma3:27b"
     col_json = "storage_privacy.json"
-    col_result = "result"
+    col_result = "masked_prompt"
 
     if col_body not in df.columns or col_private_llm not in df.columns:
         raise ValueError("Excel文件中缺少所需的列(body或Private_llama3.2:3b)")
